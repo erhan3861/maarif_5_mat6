@@ -72,6 +72,17 @@
             color: #000;
         }
 
+        .btn-code {
+            border-color: #a29bfe;
+            color: #a29bfe;
+            margin-left: 10px;
+        }
+
+        .btn-code:hover {
+            background: #a29bfe;
+            color: #000;
+        }
+
         /* Ana Panel */
         .main-panel {
             display: flex;
@@ -173,6 +184,51 @@
             text-align: center;
             border-radius: 20px;
             max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Kod Bloğu */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdccc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 20px 0;
+            border-left: 4px solid #a29bfe;
+        }
+
+        .kw {
+            color: #569cd6;
+        }
+
+        .fn {
+            color: #dcdcaa;
+        }
+
+        .str {
+            color: #ce9178;
+        }
+
+        .num {
+            color: #b5cea8;
+        }
+
+        .com {
+            color: #6a9955;
         }
     </style>
 </head>
@@ -184,7 +240,11 @@
 
     <div class="hud-top">
         <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
-        <div style="font-family:'Teko'; font-size:1.5rem; color:#ff9f43;">GÖREV: <span id="level-idx">1/5</span></div>
+        <div>
+            <span style="font-family:'Teko'; font-size:1.5rem; color:#ff9f43;">GÖREV: <span
+                    id="level-idx">1/5</span></span>
+            <button onclick="openCodeModal()" class="hud-btn btn-code">KODLA</button>
+        </div>
     </div>
 
     <div class="main-panel">
@@ -218,6 +278,28 @@
                 TÜM OYUNLARI TAMAMLADIN!
             </div>
             <button onclick="window.location.href='index.html'" class="hud-btn">ÇIKIŞ</button>
+        </div>
+    </div>
+
+    <!-- Kod Modalı -->
+    <div class="modal" id="codeModal">
+        <div class="modal-card" style="border-color:#a29bfe; width:90%; max-width:500px;">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#a29bfe;">💻 MANTIKSEL SINAJLAMA</h2>
+            <p>Bilgisayarlar senaryoları "Eğer" (If) komutuyla anlar.</p>
+
+            <div class="code-block">
+                <span class="kw">let</span> senaryo = <span class="str">"3 elma"</span>;<br><br>
+                <span class="kw">if</span> (senaryo == <span class="str">"3 elma"</span>) {<br>
+                &nbsp;&nbsp;<span class="com">// Doğru işlemi yap</span><br>
+                &nbsp;&nbsp;islem = 3 * 1;<br>
+                } <span class="kw">else</span> {<br>
+                &nbsp;&nbsp;<span class="fn">hataVer</span>();<br>
+                }
+            </div>
+
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="hud-btn"
+                style="background:#a29bfe; color:#000;">EDİTÖRDE AÇ</a>
         </div>
     </div>
 
@@ -314,6 +396,9 @@
                 alert("Hatalı eşleşme! Senaryoyu tekrar analiz et.");
             }
         }
+
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
 
     </script>
 </body>

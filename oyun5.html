@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Tamiri - Hata Analizi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -53,10 +54,23 @@
             padding: 8px 16px;
             text-decoration: none;
             cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
         }
 
         .hud-btn:hover {
             background: #0f0;
+            color: #000;
+        }
+
+        .btn-code {
+            border-color: #a29bfe;
+            color: #a29bfe;
+            margin-left: 10px;
+        }
+
+        .btn-code:hover {
+            background: #a29bfe;
             color: #000;
         }
 
@@ -77,42 +91,66 @@
             padding-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            font-family: 'Roboto', sans-serif;
         }
 
-        /* Kod Satırları */
-        .code-line {
-            padding: 10px;
-            border-left: 3px solid transparent;
+        /* Algoritma Adımları */
+        .step-container {
+            margin-bottom: 15px;
+        }
+
+        .step-line {
+            padding: 15px;
+            border-left: 4px solid #555;
             cursor: pointer;
             transition: 0.2s;
-            font-size: 1.2rem;
-            margin-bottom: 5px;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .code-line:hover {
+        .step-line:hover {
             background: rgba(0, 255, 0, 0.1);
             border-left-color: #0f0;
+            color: #fff;
         }
 
-        .code-line.error {
+        .step-line.error {
             color: #f00;
             text-decoration: line-through;
+            border-left-color: #f00;
         }
 
-        .code-line.fixed {
+        .step-line.fixed {
             color: #0ff;
+            border-left-color: #0ff;
         }
 
-        .line-num {
-            color: #555;
-            margin-right: 15px;
-            user-select: none;
+        .step-num {
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .problem-title {
+            color: #f1c40f;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #555;
+            padding-bottom: 10px;
         }
 
         /* Düzeltme Paneli */
         .fix-panel {
             position: absolute;
-            bottom: -120px;
+            bottom: -140px;
             left: 0;
             width: 100%;
             background: #111;
@@ -120,17 +158,27 @@
             padding: 20px;
             display: none;
             box-sizing: border-box;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
+        }
+
+        .fix-opts-row {
+            display: flex;
             gap: 20px;
+            width: 100%;
+            justify-content: center;
         }
 
         .fix-opt {
             background: #000;
             border: 1px solid #0ff;
             color: #0ff;
-            padding: 10px 20px;
+            padding: 15px;
             cursor: pointer;
+            flex: 1;
+            text-align: center;
+            font-size: 1.1rem;
         }
 
         .fix-opt:hover {
@@ -144,6 +192,7 @@
             font-weight: bold;
             margin-top: 10px;
             min-height: 24px;
+            text-align: center;
         }
 
         /* Modal */
@@ -157,7 +206,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
         }
 
         .modal-card {
@@ -167,6 +216,51 @@
             text-align: center;
             max-width: 500px;
             box-shadow: 0 0 50px #0f0;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Kod Bloğu */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdccc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 20px 0;
+            border-left: 4px solid #a29bfe;
+        }
+
+        .kw {
+            color: #569cd6;
+        }
+
+        .fn {
+            color: #dcdcaa;
+        }
+
+        .str {
+            color: #ce9178;
+        }
+
+        .num {
+            color: #b5cea8;
+        }
+
+        .com {
+            color: #6a9955;
         }
     </style>
 </head>
@@ -177,12 +271,15 @@
 
     <div class="hud-top">
         <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
-        <div>SİSTEM DURUMU: <span id="sys-status" style="color:red;">KRİTİK</span></div>
+        <div>
+            <span id="sys-status" style="color:red;">DURUM: KRİTİK</span>
+            <button onclick="openCodeModal()" class="hud-btn btn-code">KODLA</button>
+        </div>
     </div>
 
     <div class="terminal">
         <div class="terminal-header">
-            <span>DEBUG_MODE :: KONSOLE</span>
+            <span>ALGORİTMA KONTROL PANELİ</span>
             <span id="bug-count">HATALAR: 5</span>
         </div>
 
@@ -193,9 +290,11 @@
         <div class="status-msg" id="status-msg"></div>
 
         <div class="fix-panel" id="fix-panel">
-            <span>DÜZELTME SEÇENEKLERİ:</span>
-            <button class="fix-opt" id="opt-1" onclick="applyFix(1)"></button>
-            <button class="fix-opt" id="opt-2" onclick="applyFix(2)"></button>
+            <span style="color:#fff; margin-bottom:5px;">NASIL DÜZELTELİM?</span>
+            <div class="fix-opts-row">
+                <button class="fix-opt" id="opt-1" onclick="applyFix(1)"></button>
+                <button class="fix-opt" id="opt-2" onclick="applyFix(2)"></button>
+            </div>
         </div>
     </div>
 
@@ -203,21 +302,40 @@
     <div class="modal" id="startModal" style="display:flex;">
         <div class="modal-card">
             <h1 style="color:#0f0;">SİSTEM HATASI</h1>
-            <p>İşlem önceliği protokollerinde bozulmalar tespit edildi.</p>
-            <p>Hatalı işlem satırına tıkla ve doğru kodla değiştir.</p>
-            <button onclick="startGame()" class="hud-btn" style="font-size:1.2rem; margin-top:20px;">DEBUGGING
-                BAŞLAT</button>
+            <p>Robotun işlem adımlarında (algoritmasında) yanlışlıklar var.</p>
+            <p>Hatalı adımı bul ve düzelt.</p>
+            <button onclick="startGame()" class="hud-btn" style="font-size:1.2rem; margin-top:20px;">BAŞLAT</button>
         </div>
     </div>
 
     <div class="modal" id="endModal">
         <div class="modal-card">
-            <h1>SİSTEM ONARILDI</h1>
+            <h1 style="color:#0f0;">SİSTEM ONARILDI</h1>
             <p>Tüm hatalar giderildi.</p>
             <div style="margin:20px 0; border:1px dashed #0f0; padding:10px; color:#0f0;">
                 ŞİFRE PARÇASI: <strong>M</strong>
             </div>
             <button onclick="window.location.href='index.html'" class="hud-btn">ÇIKIŞ</button>
+        </div>
+    </div>
+
+    <!-- Kod Modalı -->
+    <div class="modal" id="codeModal">
+        <div class="modal-card" style="border-color:#a29bfe; width:90%;">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#a29bfe;">💻 HATA AYIKLAMA (DEBUGGING)</h2>
+            <p>Kodlamada hataları bulup düzeltmeye "Debugging" denir.</p>
+
+            <div class="code-block">
+                <span class="com">// Hatalı Kod:</span><br>
+                <span class="kw">let</span> sonuc = 10 + 2 * 5; <span class="com">// Bilgisayar önce çarpmayı yapar!
+                    (2*5=10, 10+10=20)</span><br><br>
+                <span class="com">// Ama biz (10+2)'yi önce yapmak istiyorsak:</span><br>
+                <span class="kw">let</span> dogruSonuc = (10 + 2) * 5; <span class="com">// Parantez eklemeliyiz!</span>
+            </div>
+
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="hud-btn"
+                style="background:#a29bfe; color:#000;">EDİTÖRDE AÇ</a>
         </div>
     </div>
 
@@ -249,72 +367,59 @@
         // Oyun Mantığı
         const tasks = [
             {
-                lines: [
-                    "// Soru: 10 + 2 x 5",
-                    "let step1 = 10 + 2;", // HATA: 12 olmamalı
-                    "let result = step1 * 5;", // 60
-                    "print(result);" // Yanlış sonuç
+                title: "SORU: 10 + 2 x 5",
+                steps: [
+                    "Adım 1: 10 ile 2'yi topla (Sonuç: 12)", // HATA
+                    "Adım 2: Çıkan sonucu 5 ile çarp (Sonuç: 60)"
                 ],
-                errorIndex: 1, // 0-based index
-                correctFix: "let step1 = 2 * 5;",
-                wrongFix: "let step1 = 10 + 2;",
-                hint: "Çarpma işlemi toplamadan önce gelir!"
+                errorIndex: 0,
+                correctFix: "Adım 1: Önce 2 ile 5'i çarp (Sonuç: 10)",
+                wrongFix: "Adım 1: 10 ile 2'yi topla (Sonuç: 12)", // Aynı hata
+                hint: "Dikkat! Çarpma işlemi toplamadan önce yapılır."
             },
             {
-                lines: [
-                    "// Soru: (20 - 5) / 3",
-                    "let step1 = 20 - 5;", // Doğru
-                    "let result = step1 / 3;", // Doğru
-                    "let check = 20 - 1.6;" // HATA: Parantez yokmuş gibi davranmış
+                title: "SORU: 20 - 5 / 5",
+                steps: [
+                    "Adım 1: 20'den 5'i çıkar (Sonuç: 15)", // HATA
+                    "Adım 2: Sonucu 5'e böl (Sonuç: 3)"
                 ],
-                // Bu biraz karışık oldu, daha basit yapalım.
-                // Tek satırda işlem hatası gösterelim.
-                lines: [
-                    "// Soru: 20 - 5 / 5",
-                    "let step1 = 20 - 5;", // HATA: 15 olmamalı (Bölme var)
-                    "let result = step1 / 5;", // 3
-                    "print(result);"
-                ],
-                errorIndex: 1,
-                correctFix: "let step1 = 5 / 5;",
-                wrongFix: "let step1 = 20 - 5;",
-                hint: "Bölme işlemi çıkarmadan önce gelir!"
+                errorIndex: 0,
+                correctFix: "Adım 1: Önce 5'i 5'e böl (Sonuç: 1)",
+                wrongFix: "Adım 1: 20'den 5'i çıkar (Sonuç: 15)",
+                hint: "Bölme işlemi çıkarmadan önce yapılır."
             },
             {
-                lines: [
-                    "// Soru: 3^2 + 4",
-                    "let step1 = 3 * 2;", // HATA: Üslü sayı çarpma değildir
-                    "let result = step1 + 4;",
-                    "print(result);"
+                title: "SORU: 3'ün karesi + 4",
+                steps: [
+                    "Adım 1: 3 ile 2'yi çarp (Sonuç: 6)", // HATA: Üslü sayı hatası
+                    "Adım 2: Sonuca 4 ekle (Sonuç: 10)"
                 ],
-                errorIndex: 1,
-                correctFix: "let step1 = 3 * 3;",
-                wrongFix: "let step1 = 3 * 2;",
-                hint: "3 üssü 2, 3 kere 2 değil, 3 kere 3 demektir!"
+                errorIndex: 0,
+                correctFix: "Adım 1: 3 ile 3'ü çarp (Karesi: 9)",
+                wrongFix: "Adım 1: 3 ile 2'yi topla (Sonuç: 5)",
+                hint: "3'ün karesi demek, 3 x 3 demektir."
             },
             {
-                lines: [
-                    "// Soru: 10 / 2 * 5",
-                    "let step1 = 2 * 5;", // HATA: Soldan sağa kuralı
-                    "let result = 10 / step1;",
-                    "print(result);"
+                title: "SORU: 10 / 2 x 5",
+                steps: [
+                    "Adım 1: 2 ile 5'i çarp (Sonuç: 10)", // HATA: Soldan sağa kuralı
+                    "Adım 2: 10'u sonuca böl (Sonuç: 1)"
                 ],
-                errorIndex: 1,
-                correctFix: "let step1 = 10 / 2;",
-                wrongFix: "let step1 = 2 * 5;",
-                hint: "Aynı öncelikte soldan sağa işlem yapılır!"
+                errorIndex: 0,
+                correctFix: "Adım 1: Soldan başla, 10'u 2'ye böl (Sonuç: 5)",
+                wrongFix: "Adım 1: 2 ile 5'i çarp (Sonuç: 10)",
+                hint: "Çarpma ve bölme yan yanaysa, soldan sağa sırayla yapılır!"
             },
             {
-                lines: [
-                    "// Soru: 2 x (3 + 4)",
-                    "let step1 = 2 * 3;", // HATA: Parantez içi önce
-                    "let result = step1 + 4;",
-                    "print(result);"
+                title: "SORU: 2 x (3 + 4)",
+                steps: [
+                    "Adım 1: 2 ile 3'ü çarp (Sonuç: 6)", // HATA
+                    "Adım 2: Sonuca 4 ekle (Sonuç: 10)"
                 ],
-                errorIndex: 1,
-                correctFix: "let step1 = 3 + 4;",
-                wrongFix: "let step1 = 2 * 3;",
-                hint: "Parantez içindeki işlem her zaman ilk yapılır!"
+                errorIndex: 0,
+                correctFix: "Adım 1: Önce parantez içini yap (3+4=7)",
+                wrongFix: "Adım 1: 2 ile 3'ü çarp (Sonuç: 6)",
+                hint: "Parantez içi her zaman en önceliklidir!"
             }
         ];
 
@@ -335,17 +440,23 @@
             }
 
             document.getElementById('bug-count').innerText = "HATALAR: " + (tasks.length - currentTask);
-            document.getElementById('status-msg').innerText = "Hatalı satırı bul...";
+            document.getElementById('status-msg').innerText = "Hatalı adımı bul ve tıkla...";
             document.getElementById('fix-panel').style.display = 'none';
             selectedLineIndex = -1;
 
             const content = document.getElementById('code-content');
             content.innerHTML = "";
 
-            tasks[currentTask].lines.forEach((line, idx) => {
+            // Başlık
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'problem-title';
+            titleDiv.innerText = tasks[currentTask].title;
+            content.appendChild(titleDiv);
+
+            tasks[currentTask].steps.forEach((line, idx) => {
                 const div = document.createElement('div');
-                div.className = 'code-line';
-                div.innerHTML = `<span class="line-num">${idx + 1}</span> ${line}`;
+                div.className = 'step-line';
+                div.innerHTML = `<span class="step-num">${idx + 1}</span> ${line}`;
                 div.onclick = () => selectLine(idx, div);
                 div.id = 'line-' + idx;
                 content.appendChild(div);
@@ -354,48 +465,63 @@
 
         function selectLine(idx, el) {
             // Önceki seçimi kaldır
-            document.querySelectorAll('.code-line').forEach(d => d.style.background = 'transparent');
+            document.querySelectorAll('.step-line').forEach(d => d.style.background = 'rgba(255,255,255,0.05)');
             el.style.background = 'rgba(0, 255, 0, 0.2)';
 
             selectedLineIndex = idx;
-            document.getElementById('status-msg').innerText = "Satır " + (idx + 1) + " seçildi. Analiz ediliyor...";
+            document.getElementById('status-msg').innerText = "Adım " + (idx + 1) + " inceleniyor...";
 
             // Eğer doğru satırsa Fix panelini aç
             if (idx === tasks[currentTask].errorIndex) {
                 setTimeout(() => {
                     document.getElementById('fix-panel').style.display = 'flex';
-                    const list = [tasks[currentTask].correctFix, tasks[currentTask].wrongFix].sort(() => Math.random() - 0.5);
-                    document.getElementById('opt-1').innerText = list[0];
-                    document.getElementById('opt-2').innerText = list[1];
+                    // Seçenekleri rastgele yerleştir
+                    const correct = tasks[currentTask].correctFix;
+                    const wrong = tasks[currentTask].wrongFix;
+
+                    if (Math.random() > 0.5) {
+                        document.getElementById('opt-1').innerText = correct; document.getElementById('opt-1').dataset.val = "correct";
+                        document.getElementById('opt-2').innerText = wrong; document.getElementById('opt-2').dataset.val = "wrong";
+                    } else {
+                        document.getElementById('opt-1').innerText = wrong; document.getElementById('opt-1').dataset.val = "wrong";
+                        document.getElementById('opt-2').innerText = correct; document.getElementById('opt-2').dataset.val = "correct";
+                    }
                 }, 500);
             } else {
-                document.getElementById('status-msg').innerText = "Bu satırda hata yok gibi görünüyor.";
+                document.getElementById('status-msg').innerText = "Bu adımda bir sorun görünmüyor.";
                 document.getElementById('fix-panel').style.display = 'none';
             }
         }
 
         function applyFix(optNum) {
-            const txt = document.getElementById('opt-' + optNum).innerText;
-            const correct = tasks[currentTask].correctFix;
+            const btn = document.getElementById('opt-' + optNum);
+            const val = btn.dataset.val;
 
-            if (txt === correct) {
+            if (val === "correct") {
                 // Düzelt
                 const lineEl = document.getElementById('line-' + selectedLineIndex);
-                lineEl.innerHTML = `<span class="line-num">${selectedLineIndex + 1}</span> ${txt} <span style="color:#0f0;"> // DÜZELDİ</span>`;
+                lineEl.innerHTML = `<span class="step-num">${selectedLineIndex + 1}</span> ${btn.innerText} <span style="color:#0f0;"> ✔ DÜZELDİ</span>`;
                 lineEl.classList.add('fixed');
 
-                document.getElementById('status-msg').innerText = "YAMA BAŞARILI!";
+                document.getElementById('status-msg').innerText = "SİSTEM DÜZELDİ! Harika.";
                 document.getElementById('status-msg').style.color = "#0f0";
+                document.getElementById('fix-panel').style.display = 'none';
 
                 setTimeout(() => {
+                    document.getElementById('status-msg').innerText = "";
+                    document.getElementById('status-msg').style.color = "#f00"; // Reset color for next
                     currentTask++;
                     loadTask();
                 }, 1500);
             } else {
-                document.getElementById('status-msg').innerText = "HATALI YAMA! " + tasks[currentTask].hint;
+                document.getElementById('status-msg').innerText = "YANLIŞ DÜZELTME! " + tasks[currentTask].hint;
                 document.getElementById('status-msg').style.color = "#f00";
             }
         }
+
+        // Modal Code
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
 
     </script>
 </body>

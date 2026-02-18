@@ -48,6 +48,7 @@
             width: 90%;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 20px;
             z-index: 10;
         }
@@ -67,6 +68,17 @@
             background: #00d2d3;
             color: #000;
         }
+
+        .btn-code {
+            border-color: #a29bfe;
+            color: #a29bfe;
+        }
+
+        .btn-code:hover {
+            background: #a29bfe;
+            color: #000;
+        }
+
 
         /* REAKTÖR ALANI */
         .reactor-container {
@@ -283,6 +295,7 @@
             text-align: center;
             border-radius: 10px;
             box-shadow: 0 0 50px rgba(0, 210, 211, 0.3);
+            position: relative;
         }
 
         .next-btn {
@@ -295,6 +308,50 @@
             margin-top: 20px;
             font-weight: bold;
         }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Kod Bloğu */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdccc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 20px 0;
+            border-left: 4px solid #a29bfe;
+        }
+
+        .kw {
+            color: #569cd6;
+        }
+
+        .fn {
+            color: #dcdcaa;
+        }
+
+        .str {
+            color: #ce9178;
+        }
+
+        .num {
+            color: #b5cea8;
+        }
+
+        .com {
+            color: #6a9955;
+        }
     </style>
 </head>
 
@@ -304,7 +361,10 @@
 
     <div class="hud-top">
         <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
-        <div style="font-size:1.2rem; color:#00d2d3;">GÖREV: GÜÇ REAKTÖRÜ</div>
+        <div style="display:flex; align-items:center; gap:20px;">
+            <div style="font-size:1.2rem; color:#00d2d3;">GÖREV: GÜÇ REAKTÖRÜ</div>
+            <button onclick="openCodeModal()" class="hud-btn btn-code">KODLA</button>
+        </div>
     </div>
 
     <div class="reactor-container">
@@ -336,6 +396,26 @@
                 ŞİFRE PARÇASI: <strong>İ</strong>
             </div>
             <button class="next-btn" onclick="window.location.href='index.html'">GÖREV TAMAMLANDI</button>
+        </div>
+    </div>
+
+    <!-- Kod Modalı -->
+    <div class="modal" id="codeModal">
+        <div class="modal-content" style="border-color:#a29bfe; width:90%; max-width:500px;">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#a29bfe;">💻 ÜSLÜ SAYI HESAPLAMA</h2>
+            <p>Bilgisayarlar üslü sayıları çarparak hesaplar:</p>
+
+            <div class="code-block">
+                <span class="kw">let</span> taban = 3;<br>
+                <span class="kw">let</span> us = 2;<br><br>
+                <span class="com">// 3 üzeri 2 hesaplama (3 * 3)</span><br>
+                <span class="kw">let</span> sonuc = Math.<span class="fn">pow</span>(taban, us);<br><br>
+                <span class="fn">console.log</span>(sonuc); <span class="com">// Ekrana 9 yazar</span>
+            </div>
+
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="hud-btn"
+                style="background:#a29bfe; color:#000;">EDİTÖRDE AÇ</a>
         </div>
     </div>
 
@@ -406,8 +486,7 @@
                     ${Array(q.base * q.base).fill('<div style="width:10px; height:10px; background:#00d2d3;"></div>').join('')}
                 </div>`;
             } else {
-                // Küp (basit temsili) -> base tane kare katmanı (aslında karmaşık ama basit tutacağız)
-                // Sadece metin ipucu verelim şimdilik, CSS 3D küp karmaşık olabilir
+                // Küp (basit metin)
                 hintContainer.innerHTML = `<span style="font-size:0.9rem; color:#aaa;">${q.base} x ${q.base} x ${q.base}</span>`;
             }
 
@@ -449,9 +528,12 @@
                 btn.classList.add('wrong');
                 document.getElementById('msg-box').innerText = "DENGESİZ GÜÇ! TEKRAR DENE.";
                 document.getElementById('msg-box').style.color = "#ff4757";
-                isLocked = false; // Tekrar denemeye izin ver
+                isLocked = false;
             }
         }
+
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
 
         window.onload = startGame;
 

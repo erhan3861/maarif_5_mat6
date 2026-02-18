@@ -50,6 +50,18 @@
             color: #000;
         }
 
+        .btn-code {
+            border-color: #a29bfe;
+            color: #a29bfe;
+            margin-left: 10px;
+        }
+
+        .btn-code:hover {
+            background: #a29bfe;
+            color: #000;
+        }
+
+
         .health-bar {
             width: 300px;
             height: 20px;
@@ -215,6 +227,51 @@
             text-align: center;
             border-radius: 10px;
             max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Kod Bloğu */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdccc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 20px 0;
+            border-left: 4px solid #a29bfe;
+        }
+
+        .kw {
+            color: #569cd6;
+        }
+
+        .fn {
+            color: #dcdcaa;
+        }
+
+        .str {
+            color: #ce9178;
+        }
+
+        .num {
+            color: #b5cea8;
+        }
+
+        .com {
+            color: #6a9955;
         }
     </style>
 </head>
@@ -223,11 +280,14 @@
 
     <div class="hud-top">
         <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
-        <div style="text-align:right;">
-            <div style="font-family:'Orbitron'; margin-bottom:5px;">KALKAN GÜCÜ</div>
-            <div class="health-bar">
-                <div class="health-fill" id="hp-bar"></div>
+        <div style="text-align:right; display:flex; gap:20px; align-items:flex-start;">
+            <div>
+                <div style="font-family:'Orbitron'; margin-bottom:5px;">KALKAN GÜCÜ</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="hp-bar"></div>
+                </div>
             </div>
+            <button onclick="openCodeModal()" class="hud-btn btn-code">KODLA</button>
         </div>
     </div>
 
@@ -265,6 +325,28 @@
         </div>
     </div>
 
+    <!-- Kod Modalı -->
+    <div class="modal" id="codeModal">
+        <div class="modal-content" style="border-color:#a29bfe; width:90%;">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#a29bfe;">💻 PARANTEZ KODU</h2>
+            <p>Kodlamada parantezler işlemleri gruplamak için kullanılır:</p>
+
+            <div class="code-block">
+                <span class="kw">let</span> normal = 2 + 3 * 4; <span class="com">// Çarpma önce: 2 + 12 =
+                    14</span><br><br>
+                <span class="kw">let</span> ozel = (2 + 3) * 4; <span class="com">// Parantez önce: 5 * 4 =
+                    20</span><br><br>
+                <span class="kw">if</span> (ozel > normal) {<br>
+                &nbsp;&nbsp;<span class="fn">aktifEt</span>(<span class="str">"KALKAN"</span>);<br>
+                }
+            </div>
+
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="hud-btn"
+                style="background:#a29bfe; color:#000;">EDİTÖRDE AÇ</a>
+        </div>
+    </div>
+
     <script>
         const levels = [
             {
@@ -282,7 +364,7 @@
             {
                 target: 12, opts: [
                     { txt: "40 - (4 x 7)", val: 12 },
-                    { txt: "(40 - 4) x 7", val: 252 } // abartılı fark
+                    { txt: "(40 - 4) x 7", val: 252 }
                 ]
             },
             {
@@ -307,7 +389,6 @@
 
         let currentLvl = 0;
         let hp = 100;
-        let meteorInterval;
         let isMoving = false;
 
         function startGame() {
@@ -420,6 +501,19 @@
                 document.getElementById('end-title').innerText = "KALKAN ÇÖKTÜ!";
                 document.getElementById('end-title').style.color = "#ff7675";
                 document.getElementById('end-desc').innerText = "Sistem aşırı hasar aldı.";
+            }
+        }
+
+        function openCodeModal() {
+            isMoving = false; // Duraklat
+            document.getElementById('meteor').style.transition = 'none'; // Animasyonu dondur
+            document.getElementById('codeModal').style.display = 'flex';
+        }
+        function closeCodeModal() {
+            document.getElementById('codeModal').style.display = 'none';
+            // Oyunu sıfırla/devam et (Basitlik için seviyeyi baştan başlat)
+            if (document.getElementById('startModal').style.display === 'none') {
+                playLevel();
             }
         }
 

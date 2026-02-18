@@ -60,6 +60,17 @@
             color: #fff;
         }
 
+        .btn-code {
+            border-color: #a29bfe;
+            color: #a29bfe;
+            margin-left: 10px;
+        }
+
+        .btn-code:hover {
+            background: #a29bfe;
+            color: #000;
+        }
+
         /* Oyun Alanı */
         .pipeline-container {
             position: relative;
@@ -222,6 +233,51 @@
             text-align: center;
             border-radius: 20px;
             max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Kod Bloğu */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdccc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 20px 0;
+            border-left: 4px solid #a29bfe;
+        }
+
+        .kw {
+            color: #569cd6;
+        }
+
+        .fn {
+            color: #dcdcaa;
+        }
+
+        .str {
+            color: #ce9178;
+        }
+
+        .num {
+            color: #b5cea8;
+        }
+
+        .com {
+            color: #6a9955;
         }
     </style>
 </head>
@@ -232,7 +288,10 @@
 
     <div class="hud-top">
         <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
-        <div style="font-size:1.2rem; color:#54a0ff;">AKIŞ: <span id="level-txt">1/5</span></div>
+        <div>
+            <span style="font-size:1.2rem; color:#54a0ff;">AKIŞ: <span id="level-txt">1/5</span></span>
+            <button onclick="openCodeModal()" class="hud-btn btn-code">KODLA</button>
+        </div>
     </div>
 
     <div class="pipeline-container">
@@ -277,6 +336,26 @@
                 ŞİFRE PARÇASI: <strong>E</strong>
             </div>
             <button onclick="window.location.href='index.html'" class="hud-btn">ÇIKIŞ</button>
+        </div>
+    </div>
+
+    <!-- Kod Modalı -->
+    <div class="modal" id="codeModal">
+        <div class="modal-card" style="border-color:#a29bfe; width:90%; max-width:500px;">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#a29bfe;">💻 İŞLEM SIRASI</h2>
+            <p>Kodlar daima yukarıdan aşağıya ve soldan sağa işlenir.</p>
+
+            <div class="code-block">
+                <span class="com">// Soldan Sağa Kuralı</span><br>
+                <span class="kw">let</span> boru1 = 10 / 2 * 5;<br><br>
+                <span class="com">// Adım 1: 10 / 2 = 5</span><br>
+                <span class="com">// Adım 2: 5 * 5 = 25</span><br><br>
+                <span class="fn">enerjiGonder</span>(boru1);
+            </div>
+
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="hud-btn"
+                style="background:#a29bfe; color:#000;">EDİTÖRDE AÇ</a>
         </div>
     </div>
 
@@ -356,6 +435,9 @@
                 btn.classList.remove('wrong');
             }
         }
+
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
 
     </script>
 </body>
