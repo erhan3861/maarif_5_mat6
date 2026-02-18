@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roket Rotası - İşlem Sırası</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Uzay Arkaplanı */
+        .space {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #000 0%, #1a1c29 100%);
+            perspective: 1000px;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .stars {
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="1" fill="white" opacity="0.8"/><circle cx="50" cy="80" r="1.5" fill="white" opacity="0.6"/><circle cx="150" cy="120" r="1" fill="white" opacity="0.9"/></svg>');
+            animation: starMove 4s linear infinite;
+            /* Yavaşlatıldı */
+        }
+
+        @keyframes starMove {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(50%);
+            }
+        }
+
+        /* HUD */
+        .hud-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .hud-btn {
+            background: rgba(0, 210, 211, 0.1);
+            border: 1px solid #00d2d3;
+            color: #00d2d3;
+            padding: 10px 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .hud-btn:hover {
+            background: #00d2d3;
+            color: #000;
+        }
+
+        .btn-code {
+            border-color: #a29bfe;
+            color: #a29bfe;
+        }
+
+        .btn-code:hover {
+            background: #a29bfe;
+            color: #000;
+        }
+
+        .score-board {
+            font-size: 1.5rem;
+            color: #feca57;
+            text-shadow: 0 0 10px #feca57;
+        }
+
+        /* Oyun Sahnesi */
+        .game-scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            border-right: 2px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        /* Soru Kartı */
+        .question-card {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #fff;
+            padding: 15px 40px;
+            font-size: 2.2rem;
+            color: #fff;
+            border-radius: 10px;
+            z-index: 50;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 80%;
+        }
+
+        .sub-hint {
+            font-size: 0.9rem;
+            color: #00d2d3;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        /* Roket */
+        .rocket {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 120px;
+            font-size: 5rem;
+            text-align: center;
+            line-height: 120px;
+            transition: left 0.5s ease-out;
+            /* Daha yumuşak geçiş */
+            filter: drop-shadow(0 0 20px cyan);
+            z-index: 20;
+        }
+
+        /* Kapılar */
+        .gates-container {
+            position: absolute;
+            top: -250px;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .gate {
+            width: 40%;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 4px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        /* Kontroller */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            z-index: 100;
+        }
+
+        .ctrl-btn {
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 2.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.95);
+            background: #fff;
+            color: #000;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background: #2d3436;
+            border: 2px solid #0984e3;
+            padding: 40px;
+            text-align: center;
+            border-radius: 20px;
+            color: #dfe6e9;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Kod Bloğu */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdccc;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 20px 0;
+            border-left: 4px solid #a29bfe;
+        }
+
+        .kw {
+            color: #569cd6;
+        }
+
+        /* keyword */
+        .fn {
+            color: #dcdcaa;
+        }
+
+        /* function */
+        .str {
+            color: #ce9178;
+        }
+
+        /* string */
+        .num {
+            color: #b5cea8;
+        }
+
+        /* number */
+        .com {
+            color: #6a9955;
+        }
+
+        /* comment */
+    </style>
+</head>
+
+<body>
+
+    <div class="space">
+        <div class="stars"></div>
+    </div>
+
+    <div class="hud-top">
+        <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
+        <div style="display:flex; gap:10px;">
+            <div class="score-board">SKOR: <span id="score">0</span></div>
+            <button onclick="openCodeModal()" class="hud-btn btn-code">KODLA</button>
+        </div>
+    </div>
+
+    <div class="game-scene">
+        <div class="question-card" id="q-card" style="display:none;">
+            <div id="q-text">10 + 5 x 2</div>
+            <div class="sub-hint" id="hint-text">ÖNCE ÇARPMA!</div>
+        </div>
+
+        <div class="gates-container" id="gates">
+            <div class="gate" id="gate-left">20</div>
+            <div class="gate" id="gate-right">30</div>
+        </div>
+
+        <div class="rocket" id="rocket">🚀</div>
+    </div>
+
+    <div class="controls">
+        <div class="ctrl-btn" ontouchstart="moveLeft()" onclick="moveLeft()">◀</div>
+        <div class="ctrl-btn" ontouchstart="moveRight()" onclick="moveRight()">▶</div>
+    </div>
+
+    <!-- Başlangıç Modalı -->
+    <div class="modal" id="startModal" style="display:flex;">
+        <div class="modal-card">
+            <h1 style="color:#0984e3;">ROKET ROTASI</h1>
+            <p>Roketi doğru cevabın olduğu kapıya sür.</p>
+            <p style="color:#feca57;">İPUCU: Çarpma ve bölme işlemleri her zaman önce yapılır!</p>
+            <button onclick="startGame()" class="hud-btn" style="font-size:1.2rem; margin-top:20px;">MOTORLARI
+                ÇALIŞTIR</button>
+        </div>
+    </div>
+
+    <!-- Bitiş Modalı -->
+    <div class="modal" id="endModal">
+        <div class="modal-card">
+            <h1 id="end-title">GÖREV BİTTİ</h1>
+            <p id="end-desc"></p>
+            <div id="secret-part"
+                style="display:none; margin:20px 0; border:1px dashed #0984e3; padding:10px; color:#0984e3;">
+                ŞİFRE PARÇASI: <strong>L</strong>
+            </div>
+            <button onclick="window.location.href='index.html'" class="hud-btn">ANA MENÜ</button>
+        </div>
+    </div>
+
+    <!-- Kod Modalı -->
+    <div class="modal" id="codeModal">
+        <div class="modal-card" style="border-color:#a29bfe; width:90%;">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#a29bfe;">💻 ROKET ALGORİTMASI</h2>
+            <p>Bu oyunda roketin hareketi bir değişkene bağlıdır.</p>
+
+            <div class="code-block">
+                <span class="kw">let</span> roketKonumu = <span class="str">"SOL"</span>;<br><br>
+                <span class="kw">function</span> <span class="fn">hareketEt</span>(yon) {<br>
+                &nbsp;&nbsp;<span class="kw">if</span> (yon == <span class="str">"SAĞ"</span>) {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;roketKonumu = <span class="str">"SAĞ"</span>;<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">git</span>(75); <span class="com">// Sağa git</span><br>
+                &nbsp;&nbsp;} <span class="kw">else</span> {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;roketKonumu = <span class="str">"SOL"</span>;<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">git</span>(25); <span class="com">// Sola git</span><br>
+                &nbsp;&nbsp;}<br>
+                }
+            </div>
+
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="hud-btn"
+                style="background:#a29bfe; color:#000;">EDİTÖRDE AÇ</a>
+        </div>
+    </div>
+
+    <script>
+        const levels = [
+            { q: "10 + 5 x 2", correct: 20, wrong: 30, hint: "5 x 2 = 10, Sonra 10 + 10" },
+            { q: "20 - 10 / 2", correct: 15, wrong: 5, hint: "10 / 2 = 5, Sonra 20 - 5" },
+            { q: "4 + 4 x 4", correct: 20, wrong: 32, hint: "4 x 4 = 16, Sonra 4 + 16" },
+            { q: "50 / 5 + 5", correct: 15, wrong: 10, hint: "50 / 5 = 10, Sonra 10 + 5" },
+            { q: "3 + 9 / 3", correct: 6, wrong: 4, hint: "9 / 3 = 3, Sonra 3 + 3" }
+        ];
+
+        let currentLevel = 0;
+        let score = 0;
+        let lane = 'left';
+        let animFrame;
+        let isMoving = false;
+
+        // Hız Ayarları (Yavaşlatıldı)
+        let speed = 1.5;
+        const startY = -250;
+        let gateY = startY;
+
+        function startGame() {
+            document.getElementById('startModal').style.display = 'none';
+            document.getElementById('q-card').style.display = 'block';
+            resetRound();
+        }
+
+        function moveLeft() { lane = 'left'; updateRocketPos(); }
+        function moveRight() { lane = 'right'; updateRocketPos(); }
+
+        function updateRocketPos() {
+            const r = document.getElementById('rocket');
+            if (lane === 'left') r.style.left = '25%';
+            else r.style.left = '75%';
+        }
+
+        function resetRound() {
+            if (currentLevel >= levels.length) {
+                endGame(true);
+                return;
+            }
+
+            const data = levels[currentLevel];
+            document.getElementById('q-text').innerText = data.q;
+            document.getElementById('hint-text').innerText = "BEKLE..."; // İpucu hemen gösterilmesin
+
+            const gLeft = document.getElementById('gate-left');
+            const gRight = document.getElementById('gate-right');
+            const gates = document.getElementById('gates');
+
+            // Kapıları kurul
+            if (Math.random() > 0.5) {
+                gLeft.innerText = data.correct; gRight.innerText = data.wrong;
+                gLeft.dataset.val = 'correct'; gRight.dataset.val = 'wrong';
+            } else {
+                gLeft.innerText = data.wrong; gRight.innerText = data.correct;
+                gLeft.dataset.val = 'wrong'; gRight.dataset.val = 'correct';
+            }
+
+            // Pozisyon sıfırla
+            gateY = startY;
+            gates.style.top = gateY + 'px';
+            speed = 1.5 + (currentLevel * 0.2); // Çok hafif hızlanma
+
+            // Kullanıcıya hazırlanması için süre ver
+            setTimeout(() => {
+                document.getElementById('hint-text').innerText = "ROTANI SEÇ!";
+                isMoving = true;
+                loop();
+            }, 1000);
+        }
+
+        function loop() {
+            if (!isMoving) return;
+
+            gateY += speed;
+            document.getElementById('gates').style.top = gateY + 'px';
+
+            // Çarpışma bölgesi
+            const sceneH = document.querySelector('.game-scene').offsetHeight;
+            if (gateY > sceneH - 200) {
+                checkCollision();
+            } else {
+                animFrame = requestAnimationFrame(loop);
+            }
+        }
+
+        function checkCollision() {
+            isMoving = false;
+            cancelAnimationFrame(animFrame);
+
+            const gLeft = document.getElementById('gate-left');
+            const gRight = document.getElementById('gate-right');
+            let isCorrect = false;
+
+            if (lane === 'left' && gLeft.dataset.val === 'correct') isCorrect = true;
+            if (lane === 'right' && gRight.dataset.val === 'correct') isCorrect = true;
+
+            const r = document.getElementById('rocket');
+
+            if (isCorrect) {
+                score += 100;
+                document.getElementById('score').innerText = score;
+                r.innerText = "✨";
+                document.getElementById('hint-text').innerText = "HARİKA!";
+                document.getElementById('hint-text').style.color = "#00d2d3";
+            } else {
+                r.innerText = "💥";
+                document.getElementById('hint-text').innerText = "HATA! " + levels[currentLevel].hint;
+                document.getElementById('hint-text').style.color = "#ff7675";
+                // Yanlışta bekleme süresi artırıldı
+            }
+
+            setTimeout(() => {
+                r.innerText = "🚀";
+                document.getElementById('hint-text').style.color = "#fff";
+                currentLevel++;
+                resetRound();
+            }, 2500); // Sonucu görmek için 2.5 saniye bekle
+        }
+
+        function endGame() {
+            document.getElementById('endModal').style.display = 'flex';
+            document.getElementById('end-title').innerText = "GÖREV BAŞARILI";
+            document.getElementById('end-desc').innerText = "Toplam Skor: " + score;
+            document.getElementById('q-card').style.display = 'none';
+            document.getElementById('secret-part').style.display = 'block';
+        }
+
+        // Modal İşlemleri
+        function openCodeModal() {
+            isMoving = false; // Oyunu durdur
+            cancelAnimationFrame(animFrame);
+            document.getElementById('codeModal').style.display = 'flex';
+        }
+        function closeCodeModal() {
+            document.getElementById('codeModal').style.display = 'none';
+            if (currentLevel < levels.length && document.getElementById('q-card').style.display !== 'none') {
+                isMoving = true; // Devam et
+                loop();
+            }
+        }
+
+        // Klavye
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAT.5.2.2 - İşlem Önceliği</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* --- GENEL AYARLAR (UZAY İSTASYONU TEMASI) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Exo 2', sans-serif;
+            background-color: #0b0c15;
+            background-image:
+                radial-gradient(circle at 50% 50%, #1a1c29 0%, #0b0c15 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0, 255, 255, 0.03) 2px, transparent 3px);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #dfe6e9;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Scanlines Effect */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.3;
+        }
+
+        /* --- ÜST PANEL (HUD) --- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .hud-btn {
+            background: rgba(0, 255, 255, 0.1);
+            color: #00d2d3;
+            border: 1px solid #00d2d3;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            pointer-events: auto;
+        }
+
+        .hud-btn:hover {
+            background: #00d2d3;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 210, 211, 0.6);
+        }
+
+        /* --- BAŞLIK --- */
+        header {
+            margin-top: 60px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .mission-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #ff9f43;
+            border: 1px solid #ff9f43;
+            padding: 5px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.3);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            margin: 0;
+            background: linear-gradient(to right, #00d2d3, #54a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 210, 211, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .sub-text {
+            color: #a4b0be;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
+
+        /* --- OYUN IZGARASI --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            width: 85%;
+            max-width: 1200px;
+            margin-top: 40px;
+            z-index: 10;
+        }
+
+        .module-card {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            text-decoration: none;
+            color: #dfe6e9;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            height: 160px;
+            backdrop-filter: blur(5px);
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.05) 50%);
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: #00d2d3;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 210, 211, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #b2bec3;
+            line-height: 1.4;
+        }
+
+        .level-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: 'Orbitron', sans-serif;
+            color: #00d2d3;
+        }
+
+        /* Renk Kodları */
+        .c1 {
+            border-left: 4px solid #ff6b6b;
+        }
+
+        /* Üslü */
+        .c2 {
+            border-left: 4px solid #feca57;
+        }
+
+        /* Parantez */
+        .c3 {
+            border-left: 4px solid #1dd1a1;
+        }
+
+        /* İşlem Sırası */
+        .c4 {
+            border-left: 4px solid #54a0ff;
+        }
+
+        /* Soldan Sağa */
+        .c5 {
+            border-left: 4px solid #5f27cd;
+        }
+
+        /* Hata Analizi */
+        .c6 {
+            border-left: 4px solid #ff9f43;
+        }
+
+        /* Problem Kurma */
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hud-modal {
+            width: 80%;
+            max-width: 700px;
+            background: #0b0c15;
+            border: 2px solid #00d2d3;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 210, 211, 0.2);
+        }
+
+        .hud-modal::after {
+            content: "SYSTEM_INFO";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0b0c15;
+            color: #00d2d3;
+            padding: 0 10px;
+            font-family: 'Orbitron';
+            font-size: 0.8rem;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #ff6b6b;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        h2 {
+            font-family: 'Orbitron';
+            color: #00d2d3;
+            margin-top: 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .info-title {
+            color: #ff9f43;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            font-family: 'Orbitron';
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <div style="display:flex; gap:10px; pointer-events:auto;">
+            <button onclick="openModal('infoModal')" class="hud-btn">
+                <span>⚠</span> GÖREV DETAYI
+            </button>
+            <button onclick="openModal('passModal')" class="hud-btn" style="border-color:#ff9f43; color:#ff9f43;">
+                <span>🔐</span> VERİ KASASI
+            </button>
+        </div>
+
+        <div style="display:flex; gap:10px; pointer-events:auto;">
+            <button onclick="toggleFullScreen()" id="full-btn" class="hud-btn">
+                ⛶ TAM EKRAN
+            </button>
+        </div>
+    </div>
+
+    <header>
+        <div class="mission-tag">GÖREV KODU: MAT.5.2.2</div>
+        <h1>İŞLEM GALAKSİSİ</h1>
+        <div class="sub-text">Operasyon Merkezi: İşlem Önceliği Protokolleri</div>
+    </header>
+
+    <div class="grid-container">
+        <!-- Oyun 1 -->
+        <a href="oyun1.html" class="module-card c1">
+            <div class="level-badge">SEVİYE 1</div>
+            <div class="card-icon">☢️</div>
+            <div>
+                <div class="card-title">GÜÇ REAKTÖRÜ</div>
+                <div class="card-desc">Bir sayının karesi ve küpü ile reaktöre enerji sağla.</div>
+            </div>
+        </a>
+
+        <!-- Oyun 2 -->
+        <a href="oyun2.html" class="module-card c2">
+            <div class="level-badge">SEVİYE 2</div>
+            <div class="card-icon">🛡️</div>
+            <div>
+                <div class="card-title">KALKAN SAVUNMASI</div>
+                <div class="card-desc">Parantezli işlemleri önce yaparak kalkanları aktif et.</div>
+            </div>
+        </a>
+
+        <!-- Oyun 3 -->
+        <a href="oyun3.html" class="module-card c3">
+            <div class="level-badge">SEVİYE 3</div>
+            <div class="card-icon">🚀</div>
+            <div>
+                <div class="card-title">ROKET ROTASI</div>
+                <div class="card-desc">Çarpma ve Bölme önceliğini kullanarak rotayı çiz.</div>
+            </div>
+        </a>
+
+        <!-- Oyun 4 -->
+        <a href="oyun4.html" class="module-card c4">
+            <div class="level-badge">SEVİYE 4</div>
+            <div class="card-icon">⚡</div>
+            <div>
+                <div class="card-title">ENERJİ AKIŞI</div>
+                <div class="card-desc">Soldan Sağa kuralı ile enerji hatlarını bağla.</div>
+            </div>
+        </a>
+
+        <!-- Oyun 5 -->
+        <a href="oyun5.html" class="module-card c5">
+            <div class="level-badge">SEVİYE 5</div>
+            <div class="card-icon">🔧</div>
+            <div>
+                <div class="card-title">SİSTEM TAMİRİ</div>
+                <div class="card-desc">Hatalı kodları ve işlem sıralarını tespit et.</div>
+            </div>
+        </a>
+
+        <!-- Oyun 6 -->
+        <a href="oyun6.html" class="module-card c6">
+            <div class="level-badge">SEVİYE 6</div>
+            <div class="card-icon">📝</div>
+            <div>
+                <div class="card-title">SENARYO ÜRETİCİSİ</div>
+                <div class="card-desc">Verilen işlemlere uygun hikayeler ve problemler oluştur.</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- HAKKINDA MODALI -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="hud-modal">
+            <button class="close-btn" onclick="closeModal('infoModal')">×</button>
+            <h2>OPERASYON PROTOKOLÜ (MAT.5.2.2)</h2>
+            <p style="color:#b2bec3; line-height:1.6;">
+                Bu simülasyon, <strong>İşlem Önceliği</strong> kurallarını güvenli bir ortamda test etmeniz için
+                tasarlanmıştır.
+                Uzay istasyonunun kontrolünü sağlamak için aşağıdaki protokolleri sırasıyla uygulamanız gerekir:
+            </p>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <span class="info-title">1. ÜSLÜ SAYILAR</span>
+                    Önce üslü ifadelerin (kare ve küp) değerini hesapla.
+                </div>
+                <div class="info-box">
+                    <span class="info-title">2. PARANTEZ İÇİ</span>
+                    Parantez içindeki işlemleri tamamla.
+                </div>
+                <div class="info-box">
+                    <span class="info-title">3. ÇARPMA / BÖLME</span>
+                    Toplama ve çıkarmadan önce gelir.
+                </div>
+                <div class="info-box">
+                    <span class="info-title">4. SOLDAN SAĞA</span>
+                    Aynı öncelikli işlemlerde soldan sağa ilerle.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ŞİFRE MODALI -->
+    <div class="modal-overlay" id="passModal">
+        <div class="hud-modal" style="max-width:400px; text-align:center;">
+            <button class="close-btn" onclick="closeModal('passModal')">×</button>
+            <h2 style="color:#ff9f43;">VERİ KASASI</h2>
+            <p>Her görevden bir anahtar parçası topla.</p>
+            <input type="text" id="passInput" placeholder="ŞİFRE GİRİNİZ"
+                style="background:#000; border:1px solid #ff9f43; color:#ff9f43; padding:15px; font-family:'Orbitron'; font-size:1.2rem; text-align:center; width:80%; margin:20px 0;">
+            <button onclick="checkPassword()" class="hud-btn"
+                style="width:100%; justify-content:center;">ONAYLA</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.getElementById('full-btn').innerHTML = "⛶ KÜÇÜLT";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('full-btn').innerHTML = "⛶ TAM EKRAN";
+                }
+            }
+        }
+
+        function checkPassword() {
+            const val = document.getElementById('passInput').value.toUpperCase();
+            if (val === "İŞLEM") {
+                alert("ERİŞİM ONAYLANDI: Tüm sistemler aktif!");
+            } else {
+                alert("HATA: Geçersiz kod!");
+            }
+        }
+    </script>
+
+</body>
+
+</html>

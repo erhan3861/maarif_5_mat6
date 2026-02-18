@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkan Savunması - Parantez Önceliği</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000 url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="white" opacity="0.5"/></svg>');
+            font-family: 'Exo 2', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            color: #dfe6e9;
+        }
+
+        /* HUD */
+        .hud-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .hud-btn {
+            background: rgba(254, 202, 87, 0.1);
+            border: 1px solid #feca57;
+            color: #feca57;
+            padding: 8px 16px;
+            text-decoration: none;
+            font-family: 'Orbitron';
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .hud-btn:hover {
+            background: #feca57;
+            color: #000;
+        }
+
+        .health-bar {
+            width: 300px;
+            height: 20px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #222;
+        }
+
+        .health-fill {
+            width: 100%;
+            height: 100%;
+            background: #00b894;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        /* Oyun Alanı */
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 50px;
+        }
+
+        /* Göktaşı */
+        .meteor {
+            position: absolute;
+            top: -100px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #636e72, #2d3436);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron';
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff7675;
+            box-shadow: 0 0 20px rgba(255, 118, 117, 0.5);
+            transition: top 5s linear;
+            /* JS ile kontrol edilecek */
+        }
+
+        .meteor::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Kalkanlar */
+        .shield-control {
+            display: flex;
+            gap: 40px;
+            z-index: 10;
+        }
+
+        .shield-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #0984e3;
+            padding: 20px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.1s;
+            position: relative;
+            min-width: 200px;
+        }
+
+        .shield-btn:active {
+            transform: scale(0.95);
+        }
+
+        .shield-btn.active-shield {
+            background: rgba(9, 132, 227, 0.3);
+            box-shadow: 0 0 30px #0984e3;
+            border-color: #74b9ff;
+        }
+
+        .shield-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .expr-text {
+            font-size: 1.4rem;
+            color: #fff;
+            font-family: 'Exo 2';
+        }
+
+        .highlight {
+            color: #feca57;
+            font-weight: bold;
+        }
+
+        /* Kalkan Görseli */
+        .shield-dome {
+            position: absolute;
+            bottom: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150vw;
+            height: 150vw;
+            border-top: 4px solid rgba(116, 185, 255, 0.3);
+            background: radial-gradient(circle at 50% 0%, rgba(9, 132, 227, 0.1), transparent 60%);
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .shield-dome.active {
+            opacity: 1;
+            border-color: #00d2d3;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 210, 211, 0.2), transparent 60%);
+        }
+
+        /* Mesaj */
+        .alert-msg {
+            position: absolute;
+            top: 40%;
+            font-size: 3rem;
+            font-family: 'Orbitron';
+            color: #ff7675;
+            text-shadow: 0 0 20px red;
+            display: none;
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background: #2d3436;
+            border: 2px solid #feca57;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px;
+            max-width: 500px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hud-top">
+        <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
+        <div style="text-align:right;">
+            <div style="font-family:'Orbitron'; margin-bottom:5px;">KALKAN GÜCÜ</div>
+            <div class="health-bar">
+                <div class="health-fill" id="hp-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="alert-msg" id="alert-msg">KRİTİK HATA!</div>
+        <div class="shield-dome" id="dome"></div>
+
+        <div class="shield-control" id="controls">
+            <!-- Butonlar JS ile gelecek -->
+        </div>
+
+        <div class="meteor" id="meteor">18</div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="startModal" style="display:flex;">
+        <div class="modal-content">
+            <h1 style="color:#feca57;">GÖKTAŞI YAĞMURU!</h1>
+            <p>Gelen meteor üzerindeki sayıya ulaşmak için doğru işlemi seç.</p>
+            <p>Unutma: <strong>(Parantez)</strong> önceliklidir!</p>
+            <button onclick="startGame()" class="hud-btn" style="font-size:1.2rem; cursor:pointer;">SAVUNMAYI
+                BAŞLAT</button>
+        </div>
+    </div>
+
+    <div class="modal" id="endModal">
+        <div class="modal-content">
+            <h1 id="end-title">GÖREV BAŞARILI</h1>
+            <p id="end-desc">Şehir kurtarıldı.</p>
+            <div id="secret-part"
+                style="margin:20px 0; display:none; border:1px dashed #feca57; padding:10px; color:#feca57;">
+                ŞİFRE PARÇASI: <strong>Ş</strong>
+            </div>
+            <button onclick="window.location.href='index.html'" class="hud-btn" style="cursor:pointer;">ÇIKIŞ</button>
+        </div>
+    </div>
+
+    <script>
+        const levels = [
+            {
+                target: 20, opts: [
+                    { txt: "(2 + 3) x 4", val: 20 },
+                    { txt: "2 + (3 x 4)", val: 14 }
+                ]
+            },
+            {
+                target: 35, opts: [
+                    { txt: "5 x (3 + 4)", val: 35 },
+                    { txt: "(5 x 3) + 4", val: 19 }
+                ]
+            },
+            {
+                target: 12, opts: [
+                    { txt: "40 - (4 x 7)", val: 12 },
+                    { txt: "(40 - 4) x 7", val: 252 } // abartılı fark
+                ]
+            },
+            {
+                target: 80, opts: [
+                    { txt: "(10 - 2) x 10", val: 80 },
+                    { txt: "10 - (2 x 10)", val: -10 }
+                ]
+            },
+            {
+                target: 4, opts: [
+                    { txt: "16 / (2 + 2)", val: 4 },
+                    { txt: "(16 / 2) + 2", val: 10 }
+                ]
+            },
+            {
+                target: 100, opts: [
+                    { txt: "10 x (5 + 5)", val: 100 },
+                    { txt: "(10 x 5) + 5", val: 55 }
+                ]
+            }
+        ];
+
+        let currentLvl = 0;
+        let hp = 100;
+        let meteorInterval;
+        let isMoving = false;
+
+        function startGame() {
+            document.getElementById('startModal').style.display = 'none';
+            playLevel();
+        }
+
+        function playLevel() {
+            if (currentLvl >= levels.length) {
+                endGame(true);
+                return;
+            }
+
+            const data = levels[currentLvl];
+            const meteor = document.getElementById('meteor');
+            const controls = document.getElementById('controls');
+
+            // Setup Meteor
+            meteor.innerText = data.target;
+            meteor.style.transition = 'none';
+            meteor.style.top = '-150px';
+
+            // Setup Buttons
+            controls.innerHTML = "";
+            let shuffled = [...data.opts].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'shield-btn';
+                btn.innerHTML = `<span class="shield-icon">🛡️</span><div class="expr-text">${formatExpr(opt.txt)}</div>`;
+                btn.onclick = () => checkAnswer(opt.val, data.target, btn);
+                controls.appendChild(btn);
+            });
+
+            // Start Animation
+            setTimeout(() => {
+                meteor.style.transition = 'top 6s linear'; // Hız sabit
+                meteor.style.top = '70vh'; // Çarpma noktası
+                isMoving = true;
+
+                // Zaman dolunca çarpma kontrolü
+                meteor.ontransitionend = () => {
+                    if (isMoving) hitCity();
+                };
+            }, 100);
+        }
+
+        function formatExpr(txt) {
+            // Parantezleri renklendir
+            return txt.replace(/\(/g, '<span class="highlight">(</span>').replace(/\)/g, '<span class="highlight">)</span>');
+        }
+
+        function checkAnswer(val, target, btn) {
+            if (!isMoving) return;
+
+            if (val === target) {
+                // Doğru
+                isMoving = false;
+                const meteor = document.getElementById('meteor');
+                meteor.style.transition = 'top 0.5s ease-out';
+                meteor.style.top = '-200px'; // Geri püskürt
+
+                document.getElementById('dome').classList.add('active');
+                btn.classList.add('active-shield');
+
+                setTimeout(() => {
+                    document.getElementById('dome').classList.remove('active');
+                    currentLvl++;
+                    playLevel();
+                }, 1000);
+
+            } else {
+                // Yanlış
+                isMoving = false;
+                btn.style.borderColor = "red";
+                hitCity();
+            }
+        }
+
+        function hitCity() {
+            const meteor = document.getElementById('meteor');
+            meteor.style.transition = 'transform 0.1s';
+            meteor.style.transform = 'scale(1.5)';
+            setTimeout(() => meteor.style.transform = 'scale(0)', 200);
+
+            document.getElementById('alert-msg').style.display = 'block';
+            hp -= 34; // 3 Hak
+            document.getElementById('hp-bar').style.width = hp + "%";
+            document.getElementById('hp-bar').style.background = "#ff7675";
+
+            if (hp <= 0) {
+                setTimeout(() => endGame(false), 1000);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('alert-msg').style.display = 'none';
+                    meteor.style.transform = 'scale(1)';
+                    playLevel(); // Tekrar aynı seviye (veya bir sonraki değil, tekrar)
+                }, 2000);
+            }
+        }
+
+        function endGame(success) {
+            const modal = document.getElementById('endModal');
+            modal.style.display = 'flex';
+            if (success) {
+                document.getElementById('end-title').innerText = "BAŞARILI SAVUNMA!";
+                document.getElementById('end-title').style.color = "#00b894";
+                document.getElementById('secret-part').style.display = 'block';
+            } else {
+                document.getElementById('end-title').innerText = "KALKAN ÇÖKTÜ!";
+                document.getElementById('end-title').style.color = "#ff7675";
+                document.getElementById('end-desc').innerText = "Sistem aşırı hasar aldı.";
+            }
+        }
+
+    </script>
+</body>
+
+</html>

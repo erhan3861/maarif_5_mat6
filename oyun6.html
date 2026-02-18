@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senaryo Üreticisi - Problem Kurma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background: #050510;
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Arkaplan */
+        .holo-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(0, 168, 255, 0.1), transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 159, 67, 0.1), transparent 50%);
+            z-index: -1;
+        }
+
+        .grid-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 50px;
+            z-index: -1;
+        }
+
+        /* HUD */
+        .hud-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            box-sizing: border-box;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hud-btn {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 8px 16px;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: 'Teko';
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .hud-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Ana Panel */
+        .main-panel {
+            display: flex;
+            gap: 40px;
+            width: 90%;
+            max-width: 1000px;
+            height: 60vh;
+            align-items: center;
+        }
+
+        /* Sol Taraf: Mesaj / Hikaye */
+        .message-box {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #00a8ff;
+            padding: 30px;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 168, 255, 0.2);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .message-title {
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: #050510;
+            color: #00a8ff;
+            padding: 0 10px;
+            font-family: 'Teko';
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .message-text {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* Sağ Taraf: Seçenekler */
+        .options-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card:hover {
+            background: rgba(255, 159, 67, 0.2);
+            border-color: #ff9f43;
+            transform: translateX(10px);
+        }
+
+        .option-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .option-sub {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #2d3436;
+            border: 2px solid #ff9f43;
+            padding: 40px;
+            text-align: center;
+            border-radius: 20px;
+            max-width: 500px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="holo-bg"></div>
+    <div class="grid-lines"></div>
+
+    <div class="hud-top">
+        <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
+        <div style="font-family:'Teko'; font-size:1.5rem; color:#ff9f43;">GÖREV: <span id="level-idx">1/5</span></div>
+    </div>
+
+    <div class="main-panel">
+        <div class="message-box">
+            <div class="message-title">GELEN MESAJ</div>
+            <div class="message-text" id="story-txt">...</div>
+        </div>
+
+        <div class="options-box" id="opts-container">
+            <!-- Seçenekler JS ile -->
+        </div>
+    </div>
+
+    <!-- Başlangıç -->
+    <div class="modal" id="startModal" style="display:flex;">
+        <div class="modal-card">
+            <h1 style="color:#ff9f43;">SENARYO ÜRETİCİSİ</h1>
+            <p>Matematiksel ifadeler birer hikayedir.</p>
+            <p>Verilen duruma en uygun işlemi eşleştir.</p>
+            <button onclick="startGame()" class="hud-btn"
+                style="border-color:#ff9f43; color:#ff9f43; margin-top:20px;">BAŞLAT</button>
+        </div>
+    </div>
+
+    <div class="modal" id="endModal">
+        <div class="modal-card">
+            <h1>GÖREV TAMAMLANDI</h1>
+            <p>Senaryo veritabanı güncellendi.</p>
+            <div style="margin:20px 0; border:1px dashed #ff9f43; padding:10px; color:#ff9f43;">
+                DAHA FAZLA ŞİFRE PARÇASI VEYA BONUS? <br>
+                TÜM OYUNLARI TAMAMLADIN!
+            </div>
+            <button onclick="window.location.href='index.html'" class="hud-btn">ÇIKIŞ</button>
+        </div>
+    </div>
+
+    <script>
+        const missions = [
+            {
+                type: "story_to_math",
+                story: "Uzay istasyonunda 5 hangar var. Her hangarda 3 roket bulunuyor. Ayrıca dışarıda bekleyen 2 roket daha var. Toplam roket sayısı kaçtır?",
+                opts: [
+                    { txt: "(5 x 3) + 2", sub: "Önce hangardakiler, sonra dışarıdakiler.", correct: true },
+                    { txt: "5 x (3 + 2)", sub: "3 ile 2 toplanıp, 5 ile çarpılır.", correct: false }
+                ]
+            },
+            {
+                type: "math_to_story",
+                story: "İşlem: (20 - 4) / 2",
+                opts: [
+                    { txt: "20 elmadan 4 tanesi çürüdü. Kalanlar 2 kişiye paylaştırıldı.", sub: "Önce çıkarma, sonra bölme.", correct: true },
+                    { txt: "20 elmam vardı. 4 tanesini arkadaşıma verdim, o da yarısını yedi.", sub: "Anlam belirsizliği.", correct: false }
+                ]
+            },
+            {
+                type: "story_to_math",
+                story: "3 katlı bir bina var. Her katta 4 pencere var. Bu binalardan 2 tane inşa ettik.",
+                opts: [
+                    { txt: "(3 x 4) x 2", sub: "Önce bir bina, sonra 2 ile çarpım.", correct: true },
+                    { txt: "3 + (4 x 2)", sub: "Pencere sayısı hatalı.", correct: false }
+                ]
+            },
+            {
+                type: "math_to_story",
+                story: "İşlem: 30 + 5 x 2",
+                opts: [
+                    { txt: "30 liram vardı. Tanesi 5 lira olan kalemlerden 2 tane aldım.", sub: "Yanlış! Para harcanır (-), toplanmaz (+).", correct: false },
+                    { txt: "Kumbaramda 30 lira var. Babam her hafta 5 lira veriyor. 2 hafta sonra ne kadar olur?", sub: "Önce haftalık birikim (5x2), sonra mevcut paraya ekleme.", correct: true }
+                ]
+            },
+            {
+                type: "story_to_math",
+                story: "Bir sınıfta 12 sıra var. Her sırada 2 öğrenci oturuyor. 3 öğrenci bugün gelmedi.",
+                opts: [
+                    { txt: "12 x 2 - 3", sub: "Toplam kapasiteden gelmeyenleri çıkar.", correct: true },
+                    { txt: "12 x (2 - 3)", sub: "İmkansız işlem (Negatif öğrenci?).", correct: false }
+                ]
+            }
+        ];
+
+        let currentIdx = 0;
+
+        function startGame() {
+            document.getElementById('startModal').style.display = 'none';
+            loadMission();
+        }
+
+        function loadMission() {
+            if (currentIdx >= missions.length) {
+                document.getElementById('endModal').style.display = 'flex';
+                return;
+            }
+
+            const data = missions[currentIdx];
+            document.getElementById('level-idx').innerText = (currentIdx + 1) + "/" + missions.length;
+
+            // Hikayeyi Yaz
+            document.getElementById('story-txt').innerText = data.story;
+
+            // Seçenekleri Yaz
+            const container = document.getElementById('opts-container');
+            container.innerHTML = "";
+
+            // Karıştır
+            const shuffled = [...data.opts].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(opt => {
+                const card = document.createElement('div');
+                card.className = "option-card";
+                card.innerHTML = `<div class="option-text">${opt.txt}</div><div class="option-sub">${opt.sub}</div>`;
+                card.onclick = () => checkAnswer(opt.correct, card);
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(isCorrect, card) {
+            if (isCorrect) {
+                card.style.background = "rgba(0, 255, 0, 0.2)";
+                card.style.borderColor = "#0f0";
+                setTimeout(() => {
+                    currentIdx++;
+                    loadMission();
+                }, 1000);
+            } else {
+                card.style.background = "rgba(255, 0, 0, 0.2)";
+                card.style.borderColor = "#f00";
+                alert("Hatalı eşleşme! Senaryoyu tekrar analiz et.");
+            }
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Tamiri - Hata Analizi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #0f0;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Matrix Rain Effect (Canvas) */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        /* HUD */
+        .hud-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            box-sizing: border-box;
+            border-bottom: 1px solid #0f0;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .hud-btn {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 8px 16px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .hud-btn:hover {
+            background: #0f0;
+            color: #000;
+        }
+
+        /* Terminal Penceresi */
+        .terminal {
+            width: 80%;
+            max-width: 800px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid #0f0;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            position: relative;
+        }
+
+        .terminal-header {
+            border-bottom: 1px solid #0f0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Kod Satırları */
+        .code-line {
+            padding: 10px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .code-line:hover {
+            background: rgba(0, 255, 0, 0.1);
+            border-left-color: #0f0;
+        }
+
+        .code-line.error {
+            color: #f00;
+            text-decoration: line-through;
+        }
+
+        .code-line.fixed {
+            color: #0ff;
+        }
+
+        .line-num {
+            color: #555;
+            margin-right: 15px;
+            user-select: none;
+        }
+
+        /* Düzeltme Paneli */
+        .fix-panel {
+            position: absolute;
+            bottom: -120px;
+            left: 0;
+            width: 100%;
+            background: #111;
+            border: 1px solid #0f0;
+            padding: 20px;
+            display: none;
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .fix-opt {
+            background: #000;
+            border: 1px solid #0ff;
+            color: #0ff;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .fix-opt:hover {
+            background: #0ff;
+            color: #000;
+        }
+
+        /* Durum Mesajı */
+        .status-msg {
+            color: #f00;
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 24px;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #000;
+            border: 2px solid #0f0;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 0 50px #0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="matrix"></canvas>
+
+    <div class="hud-top">
+        <a href="index.html" class="hud-btn">❮ ANA MENÜ</a>
+        <div>SİSTEM DURUMU: <span id="sys-status" style="color:red;">KRİTİK</span></div>
+    </div>
+
+    <div class="terminal">
+        <div class="terminal-header">
+            <span>DEBUG_MODE :: KONSOLE</span>
+            <span id="bug-count">HATALAR: 5</span>
+        </div>
+
+        <div id="code-content">
+            <!-- Kodlar JS ile gelecek -->
+        </div>
+
+        <div class="status-msg" id="status-msg"></div>
+
+        <div class="fix-panel" id="fix-panel">
+            <span>DÜZELTME SEÇENEKLERİ:</span>
+            <button class="fix-opt" id="opt-1" onclick="applyFix(1)"></button>
+            <button class="fix-opt" id="opt-2" onclick="applyFix(2)"></button>
+        </div>
+    </div>
+
+    <!-- Başlangıç Modalı -->
+    <div class="modal" id="startModal" style="display:flex;">
+        <div class="modal-card">
+            <h1 style="color:#0f0;">SİSTEM HATASI</h1>
+            <p>İşlem önceliği protokollerinde bozulmalar tespit edildi.</p>
+            <p>Hatalı işlem satırına tıkla ve doğru kodla değiştir.</p>
+            <button onclick="startGame()" class="hud-btn" style="font-size:1.2rem; margin-top:20px;">DEBUGGING
+                BAŞLAT</button>
+        </div>
+    </div>
+
+    <div class="modal" id="endModal">
+        <div class="modal-card">
+            <h1>SİSTEM ONARILDI</h1>
+            <p>Tüm hatalar giderildi.</p>
+            <div style="margin:20px 0; border:1px dashed #0f0; padding:10px; color:#0f0;">
+                ŞİFRE PARÇASI: <strong>M</strong>
+            </div>
+            <button onclick="window.location.href='index.html'" class="hud-btn">ÇIKIŞ</button>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = "01010101MATHEMATICS";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+
+        // Oyun Mantığı
+        const tasks = [
+            {
+                lines: [
+                    "// Soru: 10 + 2 x 5",
+                    "let step1 = 10 + 2;", // HATA: 12 olmamalı
+                    "let result = step1 * 5;", // 60
+                    "print(result);" // Yanlış sonuç
+                ],
+                errorIndex: 1, // 0-based index
+                correctFix: "let step1 = 2 * 5;",
+                wrongFix: "let step1 = 10 + 2;",
+                hint: "Çarpma işlemi toplamadan önce gelir!"
+            },
+            {
+                lines: [
+                    "// Soru: (20 - 5) / 3",
+                    "let step1 = 20 - 5;", // Doğru
+                    "let result = step1 / 3;", // Doğru
+                    "let check = 20 - 1.6;" // HATA: Parantez yokmuş gibi davranmış
+                ],
+                // Bu biraz karışık oldu, daha basit yapalım.
+                // Tek satırda işlem hatası gösterelim.
+                lines: [
+                    "// Soru: 20 - 5 / 5",
+                    "let step1 = 20 - 5;", // HATA: 15 olmamalı (Bölme var)
+                    "let result = step1 / 5;", // 3
+                    "print(result);"
+                ],
+                errorIndex: 1,
+                correctFix: "let step1 = 5 / 5;",
+                wrongFix: "let step1 = 20 - 5;",
+                hint: "Bölme işlemi çıkarmadan önce gelir!"
+            },
+            {
+                lines: [
+                    "// Soru: 3^2 + 4",
+                    "let step1 = 3 * 2;", // HATA: Üslü sayı çarpma değildir
+                    "let result = step1 + 4;",
+                    "print(result);"
+                ],
+                errorIndex: 1,
+                correctFix: "let step1 = 3 * 3;",
+                wrongFix: "let step1 = 3 * 2;",
+                hint: "3 üssü 2, 3 kere 2 değil, 3 kere 3 demektir!"
+            },
+            {
+                lines: [
+                    "// Soru: 10 / 2 * 5",
+                    "let step1 = 2 * 5;", // HATA: Soldan sağa kuralı
+                    "let result = 10 / step1;",
+                    "print(result);"
+                ],
+                errorIndex: 1,
+                correctFix: "let step1 = 10 / 2;",
+                wrongFix: "let step1 = 2 * 5;",
+                hint: "Aynı öncelikte soldan sağa işlem yapılır!"
+            },
+            {
+                lines: [
+                    "// Soru: 2 x (3 + 4)",
+                    "let step1 = 2 * 3;", // HATA: Parantez içi önce
+                    "let result = step1 + 4;",
+                    "print(result);"
+                ],
+                errorIndex: 1,
+                correctFix: "let step1 = 3 + 4;",
+                wrongFix: "let step1 = 2 * 3;",
+                hint: "Parantez içindeki işlem her zaman ilk yapılır!"
+            }
+        ];
+
+        let currentTask = 0;
+        let selectedLineIndex = -1;
+
+        function startGame() {
+            document.getElementById('startModal').style.display = 'none';
+            loadTask();
+        }
+
+        function loadTask() {
+            if (currentTask >= tasks.length) {
+                document.getElementById('endModal').style.display = 'flex';
+                document.getElementById('sys-status').innerText = "STABİL";
+                document.getElementById('sys-status').style.color = "#0f0";
+                return;
+            }
+
+            document.getElementById('bug-count').innerText = "HATALAR: " + (tasks.length - currentTask);
+            document.getElementById('status-msg').innerText = "Hatalı satırı bul...";
+            document.getElementById('fix-panel').style.display = 'none';
+            selectedLineIndex = -1;
+
+            const content = document.getElementById('code-content');
+            content.innerHTML = "";
+
+            tasks[currentTask].lines.forEach((line, idx) => {
+                const div = document.createElement('div');
+                div.className = 'code-line';
+                div.innerHTML = `<span class="line-num">${idx + 1}</span> ${line}`;
+                div.onclick = () => selectLine(idx, div);
+                div.id = 'line-' + idx;
+                content.appendChild(div);
+            });
+        }
+
+        function selectLine(idx, el) {
+            // Önceki seçimi kaldır
+            document.querySelectorAll('.code-line').forEach(d => d.style.background = 'transparent');
+            el.style.background = 'rgba(0, 255, 0, 0.2)';
+
+            selectedLineIndex = idx;
+            document.getElementById('status-msg').innerText = "Satır " + (idx + 1) + " seçildi. Analiz ediliyor...";
+
+            // Eğer doğru satırsa Fix panelini aç
+            if (idx === tasks[currentTask].errorIndex) {
+                setTimeout(() => {
+                    document.getElementById('fix-panel').style.display = 'flex';
+                    const list = [tasks[currentTask].correctFix, tasks[currentTask].wrongFix].sort(() => Math.random() - 0.5);
+                    document.getElementById('opt-1').innerText = list[0];
+                    document.getElementById('opt-2').innerText = list[1];
+                }, 500);
+            } else {
+                document.getElementById('status-msg').innerText = "Bu satırda hata yok gibi görünüyor.";
+                document.getElementById('fix-panel').style.display = 'none';
+            }
+        }
+
+        function applyFix(optNum) {
+            const txt = document.getElementById('opt-' + optNum).innerText;
+            const correct = tasks[currentTask].correctFix;
+
+            if (txt === correct) {
+                // Düzelt
+                const lineEl = document.getElementById('line-' + selectedLineIndex);
+                lineEl.innerHTML = `<span class="line-num">${selectedLineIndex + 1}</span> ${txt} <span style="color:#0f0;"> // DÜZELDİ</span>`;
+                lineEl.classList.add('fixed');
+
+                document.getElementById('status-msg').innerText = "YAMA BAŞARILI!";
+                document.getElementById('status-msg').style.color = "#0f0";
+
+                setTimeout(() => {
+                    currentTask++;
+                    loadTask();
+                }, 1500);
+            } else {
+                document.getElementById('status-msg').innerText = "HATALI YAMA! " + tasks[currentTask].hint;
+                document.getElementById('status-msg').style.color = "#f00";
+            }
+        }
+
+    </script>
+</body>
+
+</html>
