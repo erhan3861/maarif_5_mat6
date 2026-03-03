@@ -83,12 +83,12 @@
         /* REAKTÖR ALANI */
         .reactor-container {
             position: relative;
-            width: 300px;
-            height: 300px;
-            margin-top: 20px;
+            width: 220px;
+            height: 220px;
+            margin-top: 10px;
             border-radius: 50%;
-            border: 10px solid #333;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            border: 8px solid #333;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -96,8 +96,8 @@
         }
 
         .core {
-            width: 150px;
-            height: 150px;
+            width: 100px;
+            height: 100px;
             background: #ff4757;
             border-radius: 50%;
             box-shadow: 0 0 20px #ff4757;
@@ -149,66 +149,24 @@
         .question-panel {
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #00d2d3;
-            padding: 20px 40px;
+            padding: 15px 30px;
             border-radius: 10px;
-            margin-top: 30px;
+            margin-top: 10px;
             text-align: center;
             position: relative;
             min-width: 300px;
         }
 
         .math-expr {
-            font-size: 3rem;
+            font-size: 2.5rem;
             color: #fff;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
         .sup {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             vertical-align: super;
             color: #ff9f43;
-        }
-
-        .visual-hint {
-            margin-top: 15px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        /* Kare Görseli */
-        .grid-visual {
-            display: grid;
-            gap: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px;
-            border-radius: 4px;
-        }
-
-        .cell {
-            width: 15px;
-            height: 15px;
-            background: #00d2d3;
-            border-radius: 2px;
-        }
-
-        /* Küp Görseli (Basit 2.5D) */
-        .cube-visual {
-            position: relative;
-            width: 60px;
-            height: 60px;
-            transform-style: preserve-3d;
-            transform: rotateX(-20deg) rotateY(45deg);
-        }
-
-        .cube-layer {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: grid;
-            gap: 2px;
         }
 
         /* Cevap Butonları */
@@ -216,7 +174,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 15px;
             width: 100%;
             max-width: 500px;
         }
@@ -225,7 +183,7 @@
             background: #2d3436;
             border: 2px solid #636e72;
             color: #fff;
-            padding: 15px;
+            padding: 10px 15px;
             font-size: 1.5rem;
             border-radius: 8px;
             cursor: pointer;
@@ -254,7 +212,7 @@
             height: 20px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            margin-top: 30px;
+            margin-top: 15px;
             overflow: hidden;
             border: 1px solid #555;
         }
@@ -369,7 +327,7 @@
 
     <div class="reactor-container">
         <div class="core" id="reactor-core"></div>
-        <div style="position: absolute; color: white; font-size: 2rem; font-weight: bold; text-shadow: 0 0 10px black;"
+        <div style="position: absolute; color: white; font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px black;"
             id="power-text">0%</div>
     </div>
 
@@ -379,7 +337,6 @@
 
     <div class="question-panel">
         <div class="math-expr" id="q-expr"></div>
-        <div class="visual-hint" id="v-hint"></div>
         <div class="message-box" id="msg-box"></div>
     </div>
 
@@ -475,20 +432,6 @@
 
             // Soruyu Göster
             document.getElementById('q-expr').innerHTML = `${q.base}<span class="sup">${q.exp}</span> = ?`;
-
-            // Görsel İpucu
-            const hintContainer = document.getElementById('v-hint');
-            hintContainer.innerHTML = "";
-
-            if (q.exp === 2) {
-                // Kare ızgarası: base x base
-                hintContainer.innerHTML = `<div style="display:grid; grid-template-columns:repeat(${q.base}, 1fr); gap:2px; width:${q.base * 10 + 10}px;">
-                    ${Array(q.base * q.base).fill('<div style="width:10px; height:10px; background:#00d2d3;"></div>').join('')}
-                </div>`;
-            } else {
-                // Küp (basit metin)
-                hintContainer.innerHTML = `<span style="font-size:0.9rem; color:#aaa;">${q.base} x ${q.base} x ${q.base}</span>`;
-            }
 
             // Seçenekleri Üret
             let opts = [correctAns];
